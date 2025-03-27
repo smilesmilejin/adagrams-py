@@ -1,76 +1,71 @@
 from random import randint
 
-LETTER_POOL = {
-    'A': 9, 
-    'B': 2, 
-    'C': 2, 
-    'D': 4, 
-    'E': 12, 
-    'F': 2, 
-    'G': 3, 
-    'H': 2, 
-    'I': 9, 
-    'J': 1, 
-    'K': 1, 
-    'L': 4, 
-    'M': 2, 
-    'N': 6, 
-    'O': 8, 
-    'P': 2, 
-    'Q': 1, 
-    'R': 6, 
-    'S': 4, 
-    'T': 6, 
-    'U': 4, 
-    'V': 2, 
-    'W': 2, 
-    'X': 1, 
-    'Y': 2, 
-    'Z': 1
-}
-
 def draw_letters():
 
-    letter_pool_copy = dict(LETTER_POOL)
-    letter_pool_keys_list = list(letter_pool_copy.keys())
-    letter_pool_length = len(letter_pool_keys_list)
+    letter_pool = {
+        'A': 9, 
+        'B': 2, 
+        'C': 2, 
+        'D': 4, 
+        'E': 12, 
+        'F': 2, 
+        'G': 3, 
+        'H': 2, 
+        'I': 9, 
+        'J': 1, 
+        'K': 1, 
+        'L': 4, 
+        'M': 2, 
+        'N': 6, 
+        'O': 8, 
+        'P': 2, 
+        'Q': 1, 
+        'R': 6, 
+        'S': 4, 
+        'T': 6, 
+        'U': 4, 
+        'V': 2, 
+        'W': 2, 
+        'X': 1, 
+        'Y': 2, 
+        'Z': 1
+    }
 
-    hand_list = []
-    counter = 0
-    length_of_hand_list = 10
+    weighted_letter_bag= []
+    for letter, frequency in letter_pool.items():
+        weighted_letter_bag += letter * frequency
+
+    hand_of_letters = []
+    MAX_HAND_SIZE = 10
     
-    while counter < length_of_hand_list:
+    while len(hand_of_letters) < MAX_HAND_SIZE:
+        number = randint(0, len(weighted_letter_bag) - 1)
+        letter = weighted_letter_bag[number]
 
-        number = randint(0, letter_pool_length - 1)
-        letter = letter_pool_keys_list[number]
-
-        if letter_pool_copy[letter] > 0:
-            hand_list.append(letter)
-            letter_pool_copy[letter] -= 1
-            counter += 1
-
-    return hand_list
-
+        if letter_pool[letter] > 0:
+            hand_of_letters.append(letter)
+            letter_pool[letter] -= 1
+    
+    return hand_of_letters
 
 def uses_available_letters(word, letter_bank):
 
-    word_uppercase = word.upper()
-    letter_bank_copy = letter_bank.copy()
-    
-    word_availabe = True
-    for letter in word_uppercase:
-        if letter not in letter_bank_copy:
-            word_availabe = False
-            break
+    letter_bank_frequency = {}
+    for letter in letter_bank:
+        if letter in letter_bank_frequency:
+            letter_bank_frequency[letter] += 1
         else:
-            letter_bank_copy.remove(letter)
-
-    return word_availabe
-
+            letter_bank_frequency[letter] = 1
+    
+    for letter in word.upper():
+        if letter in letter_bank_frequency and letter_bank_frequency[letter] > 0:
+            letter_bank_frequency[letter] -= 1
+        else:
+            return False
+    return True
+    
 
 def score_word(word):
-
-    word_uppercase = word.upper()
 
     score_chart = {
         'A': 1, 
@@ -103,65 +98,41 @@ def score_word(word):
 
     points = 0
 
-    for letter in word_uppercase:
+    for letter in word.upper():
         if letter in score_chart:
             points += score_chart[letter]
 
-    if len(word) in [7, 8, 9, 10]:
+    if 7 <= len(word) <= 10:
         points += 8
 
     return points
 
 def get_highest_word_score(word_list):
     
-    tuple_word_sore = ()
     winner_word =''
-    max_score = 0
-    tuple_word_sore = (winner_word, max_score)
+    top_score = 0
     if not word_list:
-        return tuple_word_sore
+        return winner_word, top_score
     
-    # Create a dictionary that maps each word in word_list to its score
-    word_score_dict = {}
+    best_words = []
     for word in word_list:
         score = score_word(word)
-        word_score_dict[word] = score
 
-    # Find the highest score(s) in the dictionary values
-    for key, value in word_score_dict.items():
-        if word_score_dict[key] > max_score:
-            winner_word = key
-            max_score= word_score_dict[key]
+        if score > top_score:
+            top_score = score
+            best_words = [word]
 
-    # Count the total number of maximum scores
-    number_of_highest_score = 0
-    for key, value in word_score_dict.items():
-        if value == max_score:
-            number_of_highest_score +=1
+        elif score == top_score:
+            best_words.append(word)
 
-    temp_length = 0
-    first_time = True
-    # If there is only one winner, return the tuple
-    if number_of_highest_score == 1:
-        tuple_word_sore = (winner_word, max_score)
-        return tuple_word_sore
-    # If there are ties (multiple winners), determine the winner based on word length
-    else:
-        for word, score in word_score_dict.items():
-            if score == max_score:
-                word_length = len(word)
-                if word_length == 10:
-                    winner_word = word
-                    break
-                else:
-                    if first_time:
-                        winner_word = word
-                        temp_length = word_length
-                        first_time = False
-                    else:
-                        if word_length < temp_length:
-                            winner_word = word
-                            temp_length = word_length
-
-    tuple_word_sore = (winner_word,max_score)
-    return tuple_word_sore
+    if len(best_words) == 1:
+        return best_words[0], top_score
+    
+    winner_word = best_words[0]
+    for word in best_words:
+        if len(word) == 10:
+            return word, top_score
+        elif len(word) < len(winner_word):
+            winner_word = word
+    
+    return winner_word, top_score
