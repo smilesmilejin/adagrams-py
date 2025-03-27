@@ -31,14 +31,14 @@ def draw_letters():
         'Z': 1
     }
 
-    weighted_letter_bag= []
+    weighted_letter_bag = []
     for letter, frequency in letter_pool.items():
         weighted_letter_bag += letter * frequency
 
     hand_of_letters = []
-    MAX_HAND_SIZE = 10
+    max_hand_size = 10
     
-    while len(hand_of_letters) < MAX_HAND_SIZE:
+    while len(hand_of_letters) < max_hand_size:
         number = randint(0, len(weighted_letter_bag) - 1)
         letter = weighted_letter_bag[number]
 
